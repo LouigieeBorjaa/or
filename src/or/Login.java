@@ -5,6 +5,13 @@
  */
 package or;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author janin
@@ -46,8 +53,8 @@ public class Login extends javax.swing.JFrame {
         jPanel1.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(343, 37, -1, -1));
 
         jLabel1.setFont(new java.awt.Font("Arial", 1, 18)); // NOI18N
-        jLabel1.setText("Username");
-        jPanel1.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(207, 173, -1, -1));
+        jLabel1.setText("Email");
+        jPanel1.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 170, -1, -1));
 
         jLabel2.setFont(new java.awt.Font("Arial", 1, 18)); // NOI18N
         jLabel2.setText("Password");
@@ -86,7 +93,10 @@ public class Login extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 793, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 706, Short.MAX_VALUE)
+                .addGap(77, 77, 77))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -97,7 +107,51 @@ public class Login extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        // TODO add your handling code here:
+         
+    String url = "jdbc:mysql://localhost:3306/binsbites";
+String user = "root";
+String password = "";
+
+String query = "SELECT cpass, type FROM customer WHERE email = ? AND status = 'active'";
+
+try (Connection conn = DriverManager.getConnection(url, user, password);
+     PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+    pstmt.setString(1, username.getText());
+    ResultSet rs = pstmt.executeQuery();
+
+    if (rs.next()) {
+        String storedPassword = rs.getString("cpass");
+        String userType = rs.getString("type"); 
+
+        if (Password.getText().equals(storedPassword)) {
+            JOptionPane.showMessageDialog(null, "Login Successful!");
+
+            // Redirect based on user type
+            if ("customer".equalsIgnoreCase(userType)) {
+                Customer cs = new Customer();
+                this.dispose();
+                cs.setVisible(true);
+            } else if ("Receptonist".equalsIgnoreCase(userType)) {
+                Receptionist rc = new Receptionist();
+                this.dispose();
+                rc.setVisible(true);
+            } else if ("admin".equalsIgnoreCase(userType)) {
+                Admin ad = new Admin();
+                this.dispose();
+                ad.setVisible(true);
+            } else {
+                JOptionPane.showMessageDialog(null, "Unknown user type!", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, "Wrong Username or Password!", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    } else {
+        JOptionPane.showMessageDialog(null, "User not found or inactive!", "Error", JOptionPane.ERROR_MESSAGE);
+    }
+} catch (SQLException e) {
+    JOptionPane.showMessageDialog(null, "Database Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+}
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jLabel4MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel4MouseClicked
