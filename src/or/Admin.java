@@ -6,6 +6,7 @@
 
 package or;
 
+import config.config;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import net.proteanit.sql.DbUtils;

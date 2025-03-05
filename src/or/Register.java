@@ -5,7 +5,9 @@
  */
 package or;
 
+import config.config;
 import java.awt.Color;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -27,7 +29,30 @@ public class Register extends javax.swing.JFrame {
         initComponents();
     }
 
-    
+    private boolean emailExists(String email) {
+
+        config con = new config();
+
+        try {
+            String query = "SELECT * FROM user WHERE u_email = ?";
+            PreparedStatement pstmt = con.getConnection().prepareStatement(query);
+            pstmt.setString(1, email.trim());
+            ResultSet resultSet = pstmt.executeQuery();
+
+            if (resultSet.next()) {
+
+                return true;
+            }
+
+        } catch (SQLException ex) {
+            System.out.println("" + ex);
+
+        }
+
+        return false;
+
+    }
+
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -82,7 +107,7 @@ public class Register extends javax.swing.JFrame {
                 COMPIRMActionPerformed(evt);
             }
         });
-        jPanel1.add(COMPIRM, new org.netbeans.lib.awtextra.AbsoluteConstraints(420, 290, 120, 40));
+        jPanel1.add(COMPIRM, new org.netbeans.lib.awtextra.AbsoluteConstraints(420, 300, 120, 40));
 
         cNumber.setFont(new java.awt.Font("Arial", 1, 14)); // NOI18N
         cNumber.addFocusListener(new java.awt.event.FocusAdapter() {
@@ -187,7 +212,7 @@ public class Register extends javax.swing.JFrame {
         jPanel1.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(200, 180, -1, 10));
 
         type.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "(Choose account type)", "Customer", "Receptionist" }));
-        jPanel1.add(type, new org.netbeans.lib.awtextra.AbsoluteConstraints(400, 220, 150, 30));
+        jPanel1.add(type, new org.netbeans.lib.awtextra.AbsoluteConstraints(410, 230, 150, 30));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -197,7 +222,7 @@ public class Register extends javax.swing.JFrame {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 353, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 384, Short.MAX_VALUE)
         );
 
         pack();
@@ -284,7 +309,7 @@ public class Register extends javax.swing.JFrame {
 
             con.insertData("INSERT INTO customer (fname, lname, email, c_number, cpass, type, status)"
                     + "VALUES ('" + fName.getText() + "','" + lName.getText() + "','" + eMail.getText() + "',"
-                    + "'" + cNumber.getText() + "','" + Pass.getText() + "','" + type.getSelectedItem() + "', 'Pending')"); 
+                    + "'" + cNumber.getText() + "','" + Pass.getText() + "','" + type.getSelectedItem() + "', 'Pending')");
 
             Login lg = new Login();
 
@@ -336,16 +361,15 @@ public class Register extends javax.swing.JFrame {
             boolean isValid = false;
         } else {
             cNumber.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-
         }
-        String contactNumber = null;
 
-        if (!isValidContactNumber(contactNumber)) {
+        String contactNumber = cNumber.getText().trim();
+        if (!contactNumber.matches("\\d{11}")) {
             cNumber.setBorder(BorderFactory.createLineBorder(Color.RED));
-            JOptionPane.showMessageDialog(this, "Invalid contact number format. Please enter 11 digits.", "Error", JOptionPane.ERROR_MESSAGE);
-            cNumber.requestFocus(); // Set focus back to the field
-            cNumber.selectAll(); // Select the text for easy replacement
-            return; // Stop further processing
+            JOptionPane.showMessageDialog(null, "Contact number must contain exactly 11 digits.", "Error", JOptionPane.ERROR_MESSAGE);
+            boolean isValid = false;
+        } else {
+            cNumber.setBorder(BorderFactory.createLineBorder(Color.GRAY));
         }
 
 
@@ -382,12 +406,42 @@ public class Register extends javax.swing.JFrame {
                   }//GEN-LAST:event_cPassFocusLost
 
     private void eMailFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_eMailFocusLost
-        if (eMail.getText().isEmpty()) {
-            this.eMail.setBorder(BorderFactory.createLineBorder(Color.RED));
-            boolean isValid = false;
 
-        }
+       // Regular expression for email validation
+String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
 
+// Default assumption: the email is valid
+boolean isValid = true;
+
+// Check if the email field is empty
+if (eMail.getText().isEmpty()) {
+    eMail.setBorder(BorderFactory.createLineBorder(Color.RED));
+    JOptionPane.showMessageDialog(null, "Email cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
+    isValid = false;  // Mark as invalid
+} 
+// Check if the email already exists
+else if (emailExists(eMail.getText())) {
+    eMail.setBorder(BorderFactory.createLineBorder(Color.RED));
+    JOptionPane.showMessageDialog(null, "Email is already registered. Please use another email.", "Error", JOptionPane.ERROR_MESSAGE);
+    isValid = false;  // Mark as invalid
+} 
+// Check if the email format is valid using regex
+else if (!eMail.getText().matches(emailRegex)) {
+    eMail.setBorder(BorderFactory.createLineBorder(Color.RED));
+    JOptionPane.showMessageDialog(null, "Email must be in the format 'username@domain.com'.", "Error", JOptionPane.ERROR_MESSAGE);
+    isValid = false;  // Mark as invalid
+} 
+// If the email is valid, set the border to gray
+else {
+    eMail.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+}
+
+// Proceed with further logic if the email is valid
+if (isValid) {
+    // Continue processing (e.g., saving the email)
+    // Your further code here...
+}
+    
     }//GEN-LAST:event_eMailFocusLost
 
     private void cNumberFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_cNumberFocusGained
